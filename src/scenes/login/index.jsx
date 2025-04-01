@@ -5,21 +5,26 @@ import { Formik } from "formik";
 import * as yup from "yup";
 import { useNavigate } from "react-router-dom";
 import axios from "axios"; // Import axios for API calls
+import { useDispatch } from 'react-redux';
+import { setUser } from '../../features/user/userSlice';
 
 const Login = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleFormSubmit = async (values) => {
     try {
-      const response = await axios.post("/api/login", values); // Call the backend login API
-      const userRole = response.data.role; // Assume the API returns a role in the response
+      const response = await axios.post("http://localhost:9999/auth/login", values); // Ensure this URL is correct
+      const userRole = response.data.role;
+      console.log(response.data, "lllllllllllll");
+      dispatch(setUser(response.data));
 
-      if (userRole === "admin") {
-        navigate("/dashboard/admin"); // Navigate to admin dashboard
+      if (userRole === "guest") {
+        navigate("/dashboard/admin");
       } else if (userRole === "employee") {
-        navigate("/dashboard/employee"); // Navigate to employee dashboard
+        navigate("/dashboard/employee");
       } else {
         console.error("Invalid role");
       }
@@ -67,13 +72,13 @@ const Login = () => {
                   fullWidth
                   variant="filled"
                   type="text"
-                  label="Email" // Corrected label
+                  label="Username"
                   onBlur={handleBlur}
                   onChange={handleChange}
-                  value={values.email}
-                  name="email" // Corrected name
-                  error={!!touched.email && !!errors.email}
-                  helperText={touched.email && errors.email}
+                  value={values.username}
+                  name="username"
+                  error={!!touched.username && !!errors.username}
+                  helperText={touched.username && errors.username}
                 />
                 <TextField
                   fullWidth
@@ -83,7 +88,7 @@ const Login = () => {
                   onBlur={handleBlur}
                   onChange={handleChange}
                   value={values.password}
-                  name="password" // Corrected name
+                  name="password"
                   error={!!touched.password && !!errors.password}
                   helperText={touched.password && errors.password}
                 />
@@ -102,12 +107,12 @@ const Login = () => {
 };
 
 const loginSchema = yup.object().shape({
-  email: yup.string().email("Invalid email").required("Required"),
+  username: yup.string().required("Required"), // Updated validation for username
   password: yup.string().required("Required"),
 });
 
 const initialValues = {
-  email: "",
+  username: "", // Updated initial value for username
   password: "",
 };
 

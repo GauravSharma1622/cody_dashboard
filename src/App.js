@@ -33,7 +33,7 @@ function App() {
           <main className="content">
             {location.pathname !== "/login" && <Topbar setIsSidebar={setIsSidebar} />}
             <Routes>
-              <Route path="/" element={<AdminDashboard />} />
+              <Route path="/" element={<Login />} />
               <Route path="/login" element={<Login />} />
               <Route path="/dashboard/admin" element={<AdminDashboard />} />
               <Route path="/dashboard/employee" element={<EmployeeDashboard />} />
