@@ -7,29 +7,37 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios"; // Import axios for API calls
 import { useDispatch } from 'react-redux';
 import { setUser } from '../../features/user/userSlice';
+import { useState } from 'react'; // Import useState for managing messages
 
 const Login = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [message, setMessage] = useState(""); // State to hold the message
+  const [messageType, setMessageType] = useState("success"); // State for message type
 
   const handleFormSubmit = async (values) => {
     try {
       const response = await axios.post("http://localhost:9999/auth/login", values); // Ensure this URL is correct
       const userRole = response.data.role;
-      console.log(response.data, "lllllllllllll");
+      localStorage.setItem("token",response.data.jwt ); // Store user data in local storage
       dispatch(setUser(response.data));
 
-      if (userRole === "guest") {
+      setMessage("Login successful!"); // Set success message
+      setMessageType("success"); // Success message type
+
+      if (userRole === "admin") {
         navigate("/dashboard/admin");
       } else if (userRole === "employee") {
         navigate("/dashboard/employee");
       } else {
-        console.error("Invalid role");
+        setMessage("Invalid role");
+        setMessageType("error");
       }
     } catch (error) {
-      console.error("Login failed:", error.response?.data || error.message);
+      setMessage("Login failed: " + (error.response?.data || error.message)); // Set error message
+      setMessageType("error"); // Error message type
     }
   };
 
@@ -39,16 +47,31 @@ const Login = () => {
       justifyContent="center"
       alignItems="center"
       height="100vh"
-      bgcolor={colors.primary[500]}
+      bgcolor={theme.palette.mode === 'light' ? '#ffffff' : colors.primary[500]} // Dynamically adapt to theme
     >
       <Box
         width="400px"
         p="20px"
         borderRadius="8px"
-        bgcolor={colors.primary[400]}
+        bgcolor={theme.palette.mode === 'light' ? '#f5f5f5' : colors.primary[400]} // Dynamically adapt to theme
         boxShadow="0px 4px 10px rgba(0, 0, 0, 0.1)"
       >
         <Header title="LOGIN" subtitle="Access Your Account" />
+        
+        {/* Display the success or error message */}
+        {message && (
+          <Box
+            bgcolor={messageType === "success" ? "green" : "red"}
+            color="white"
+            p="10px"
+            mb="20px"
+            borderRadius="5px"
+            textAlign="center"
+          >
+            <Typography>{message}</Typography>
+          </Box>
+        )}
+        
         <Formik
           onSubmit={handleFormSubmit}
           initialValues={initialValues}
@@ -107,12 +130,12 @@ const Login = () => {
 };
 
 const loginSchema = yup.object().shape({
-  username: yup.string().required("Required"), // Updated validation for username
+  username: yup.string().required("Required"),
   password: yup.string().required("Required"),
 });
 
 const initialValues = {
-  username: "", // Updated initial value for username
+  username: "",
   password: "",
 };
 
