@@ -85,7 +85,7 @@ const Login = () => {
             handleChange,
             handleSubmit,
           }) => (
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} autoComplete="off">
               <Box
                 display="grid"
                 gap="20px"
@@ -100,6 +100,7 @@ const Login = () => {
                   onChange={handleChange}
                   value={values.username}
                   name="username"
+                  autoComplete="off"
                   error={!!touched.username && !!errors.username}
                   helperText={touched.username && errors.username}
                 />
@@ -112,6 +113,7 @@ const Login = () => {
                   onChange={handleChange}
                   value={values.password}
                   name="password"
+                  autoComplete="new-password"
                   error={!!touched.password && !!errors.password}
                   helperText={touched.password && errors.password}
                 />

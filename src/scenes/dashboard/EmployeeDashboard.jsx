@@ -392,6 +392,7 @@ const EmployeeDashboard = () => {
                         variant="contained"
                         color="primary"
                         size="small"
+                        sx={{ mr: 1 }}
                         onClick={() => {
                           /* edit functionality */
                         }}
