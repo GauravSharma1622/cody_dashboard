@@ -390,7 +390,7 @@ const EmployeeDashboard = () => {
                     <TableCell>
                       <Button
                         variant="contained"
-                        color="primary"
+                        color="info"
                         size="small"
                         sx={{ mr: 1 }}
                         onClick={() => {
