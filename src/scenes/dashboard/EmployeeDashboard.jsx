@@ -24,6 +24,7 @@ import {
   TableRow,
   Paper,
 } from "@mui/material";
+import { deleteTimesheet } from "../../common api's/delete";
 
 const EmployeeDashboard = () => {
   const theme = useTheme();
@@ -123,6 +124,24 @@ const EmployeeDashboard = () => {
     }
   };
   
+  const handleDeleteClick = async (id) => {
+    const token = localStorage.getItem("token"); // Replace with the correct token key
+  
+    if (!token) {
+      console.error("⚠️ Employee token not found!");
+      alert("Session expired. Please log in again.");
+      return;
+    }
+  
+    const result = await deleteTimesheet(id, token);
+  
+    if (result.success) {
+      console.log("✅ Timesheet deleted successfully by Employee!");
+      fetchTimesheetHistory(); // Your function to refresh list
+    } else {
+      console.error("❌ Failed to delete timesheet.");
+    }
+  };
 
   const timesheetSchema = yup.object().shape({
     date: yup.date().required("Date is required"),
@@ -403,9 +422,7 @@ const EmployeeDashboard = () => {
                         variant="contained"
                         color="error"
                         size="small"
-                        onClick={() => {
-                          /* delete functionality */
-                        }}
+                        onClick={() => handleDeleteClick(entry?.id)}
                       >
                         Delete
                       </Button>
