@@ -18,6 +18,7 @@ import { tokens } from "../../theme";
 import "react-datepicker/dist/react-datepicker.css";
 import { useSelector } from "react-redux";
 import axios from "axios";
+import { deleteTimesheet } from "../../common api's/delete";
 
 const AdminDashboard = () => {
   const theme = useTheme();
@@ -62,40 +63,31 @@ console.log(timesheetHistory,"timesheetHistory");
     fetchAllTimesheetHistory();
   }, []);
 
-  const deleteTimesheet = async (id) => {
-    try {
-      console.log(`Attempting to delete timesheet with ID: ${id}`);
+  const handleClick = async (id) => {
+    console.log(id, "id being deleted");
   
-      const response = await axios.delete(`http://localhost:9999/api/timesheets/deletesheets/${id}`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        withCredentials: true, // Ensure cookies are sent if required
-      });
+    const token = localStorage.getItem("token"); // Ensure token is stored in localStorage
   
-      if (response.status === 200) {
-        console.log("Timesheet deleted successfully!");
-        fetchAllTimesheetHistory(); // Refresh after delete
-      } else {
-        console.error("Unexpected response status:", response.status);
-      }
-    } catch (error) {
-      if (error.response) {
-        console.error("Error deleting timesheet:", error.response.data);
-      } else if (error.request) {
-        console.error("No response received:", error.request);
-      } else {
-        console.error("Error setting up request:", error.message);
-      }
+    if (!token) {
+      console.error("Admin token not found!");
+      return;
+    }
+  
+    const result = await deleteTimesheet(id, token);
+  
+    if (result.success) {
+      console.log("Timesheet deleted successfully!");
+      fetchAllTimesheetHistory(); // Refresh the list after delete
+    } else {
+      console.error("Failed to delete timesheet.");
     }
   };
   
   
-const handleClick = (id) => {
-  console.log(id,"iddddddddddddddddddddd");
-  deleteTimesheet(id);  
-}
+// const handleClick = (id) => {
+//   console.log(id,"iddddddddddddddddddddd");
+//   deleteTimesheet(id);  
+// }
 
 
   // Handle pagination changes
