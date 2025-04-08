@@ -8,6 +8,7 @@ import axios from "axios"; // Import axios for API calls
 import { useDispatch } from 'react-redux';
 import { setUser } from '../../features/user/userSlice';
 import { useState } from 'react'; // Import useState for managing messages
+import { Link } from "react-router-dom"; // Import Link from react-router-dom
 
 const Login = () => {
   const theme = useTheme();
@@ -118,10 +119,33 @@ const Login = () => {
                   helperText={touched.password && errors.password}
                 />
               </Box>
-              <Box display="flex" justifyContent="center" mt="20px">
+              <Box display="flex" flexDirection="column" alignItems="center" mt="20px">
                 <Button type="submit" color="secondary" variant="contained">
                   Login
                 </Button>
+                <Typography mt="10px">
+                  Don't have an account?{" "}
+                  <Link
+                    to="/signup"
+                    style={{
+                      color: theme.palette.mode === "light" ? "indigo" : "cyan",
+                      textDecoration: "none",
+                    }}
+                  >
+                    Sign Up
+                  </Link>
+                </Typography>
+                <Typography mt="10px">
+                  <Link
+                    to="/forgot-password"
+                    style={{
+                      color: theme.palette.mode === "light" ? "indigo" : "cyan",
+                      textDecoration: "none",
+                    }}
+                  >
+                    Forgot Password?
+                  </Link>
+                </Typography>
               </Box>
             </form>
           )}

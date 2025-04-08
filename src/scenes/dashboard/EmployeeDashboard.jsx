@@ -25,8 +25,18 @@ import {
   Paper,
 } from "@mui/material";
 import { deleteTimesheet } from "../../common api's/delete";
+import { editTimesheet } from "../../common api's/editTimesheet";
+import EditModal from "./editModal";
 
 const EmployeeDashboard = () => {
+  const [editData, setEditData] = useState({
+    id: null,
+    date: "",
+    projects: [],
+    hours: "",
+    task: "",
+  });
+  const [openEditModal, setOpenEditModal] = useState(false);
   const theme = useTheme();
   const colors = tokens
     ? tokens(theme.palette.mode)
@@ -76,9 +86,12 @@ const EmployeeDashboard = () => {
   };
 
   const handleAddProject = (values, setFieldValue) => {
-    setFieldValue("projects", [...values.projects, { project: "", hoursWorked: "", notes: "" }]);
+    setFieldValue("projects", [
+      ...values.projects,
+      { project: "", hoursWorked: "", notes: "" },
+    ]);
   };
-  
+
   const handleRemoveProject = (index, values, setFieldValue) => {
     if (values.projects.length > 1) {
       const updatedProjects = values.projects.filter((_, i) => i !== index);
@@ -87,27 +100,21 @@ const EmployeeDashboard = () => {
   };
 
   const handleSubmit = async (values) => {
-    console.log("Form values:", values);
-    
-    const formattedDate = values.date.toISOString().split('T')[0]; 
-  
-    // Convert "project" to "projectName"
+    const formattedDate = values.date.toISOString().split("T")[0];
     const formattedProjects = values.projects.map((proj) => ({
-      projectName: proj.project,  // Change key to match backend
+      projectName: proj.project, // Change key to match backend
       hoursWorked: Number(proj.hoursWorked), // Ensure numeric value
       notes: proj.notes,
     }));
-  
     const payload = {
       date: formattedDate,
       projects: formattedProjects,
-      username: username, 
+      username: username,
     };
-  
     try {
       const response = await axios.post(
         "http://localhost:9999/api/timesheets",
-        payload, 
+        payload,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -117,24 +124,24 @@ const EmployeeDashboard = () => {
       );
       console.log("Timesheet submitted:", response.data);
       alert("Timesheet submitted successfully!");
-      fetchTimesheetHistory(); 
+      fetchTimesheetHistory();
     } catch (error) {
       console.error("Error submitting timesheet:", error);
       alert("Error submitting timesheet");
     }
   };
-  
+
   const handleDeleteClick = async (id) => {
     const token = localStorage.getItem("token"); // Replace with the correct token key
-  
+
     if (!token) {
       console.error("⚠️ Employee token not found!");
       alert("Session expired. Please log in again.");
       return;
     }
-  
+
     const result = await deleteTimesheet(id, token);
-  
+
     if (result.success) {
       console.log("✅ Timesheet deleted successfully by Employee!");
       fetchTimesheetHistory(); // Your function to refresh list
@@ -164,6 +171,44 @@ const EmployeeDashboard = () => {
     date: new Date(),
     projects,
   };
+  const handleUpdate = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return alert("Token not found");
+
+    const { id, ...rest } = editData;
+    const payload = { id, ...rest };
+
+    const result = await editTimesheet(id, payload, token);
+
+    if (result.success) {
+      setOpenEditModal(false);
+      fetchTimesheetHistory(); // your own method to refresh data
+      alert("Timesheet updated successfully!");
+    } else {
+      alert("Failed to update timesheet.");
+    }
+  };
+
+  const handleEditClick = (entry) => {
+    const timesheetId = entry?.id;
+
+    if (!timesheetId) {
+      console.error("Timesheet ID not found in entry", entry);
+      return;
+    }
+
+    setEditData({
+      id: timesheetId,
+      date: entry.date,
+      projects: entry.projects.map((project) => ({
+        projectName: project.projectName,
+        hoursWorked: project.hoursWorked,
+        notes: project.notes,
+      })),
+    });
+
+    setOpenEditModal(true);
+  };
 
   return (
     <Box
@@ -192,7 +237,7 @@ const EmployeeDashboard = () => {
           handleBlur,
           handleChange,
           handleSubmit,
-          setFieldValue 
+          setFieldValue,
         }) => (
           <form onSubmit={handleSubmit} style={{ width: "100%" }}>
             <Box display="grid" gap="16px">
@@ -273,7 +318,9 @@ const EmployeeDashboard = () => {
                   <Button
                     color="error"
                     variant="outlined"
-                    onClick={() => handleRemoveProject(index, values, setFieldValue)}
+                    onClick={() =>
+                      handleRemoveProject(index, values, setFieldValue)
+                    }
                     disabled={values.projects.length === 1}
                     sx={{ mt: 2 }}
                   >
@@ -412,9 +459,7 @@ const EmployeeDashboard = () => {
                         color="info"
                         size="small"
                         sx={{ mr: 1 }}
-                        onClick={() => {
-                          /* edit functionality */
-                        }}
+                        onClick={() => handleEditClick(entry)}
                       >
                         Edit
                       </Button>
@@ -434,6 +479,13 @@ const EmployeeDashboard = () => {
           </Table>
         </TableContainer>
       </Box>
+      <EditModal
+        open={openEditModal}
+        editData={editData}
+        setEditData={setEditData}
+        onClose={() => setOpenEditModal(false)}
+        onSave={handleUpdate}
+      />
     </Box>
   );
 };
