@@ -18,6 +18,11 @@ import Calendar from "./scenes/calendar/calendar";
 import Login from "./scenes/login";
 import AdminDashboard from "./scenes/dashboard/AdminDashboard";
 import EmployeeDashboard from "./scenes/dashboard/EmployeeDashboard";
+import Signup from "./scenes/auth/Signup";
+import StudentDashboard from "./scenes/dashboard/StudentDashboard";
+import StudentAdminDashboard from "./scenes/dashboard/StudentAdminDashboard";
+import VerifyPassword from "./scenes/auth/VerifyPassword";
+import ForgotPassword from "./scenes/auth/ForgotPassword";
 
 function App() {
   const [theme, colorMode] = useMode();
@@ -29,14 +34,19 @@ function App() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <div className="app">
-          {location.pathname !== "/login" && <Sidebar isSidebar={isSidebar} />}
+          {location.pathname !== "/" && <Sidebar isSidebar={isSidebar} />}
           <main className="content">
-            {location.pathname !== "/login" && <Topbar setIsSidebar={setIsSidebar} />}
+            {location.pathname !== "/" && <Topbar setIsSidebar={setIsSidebar} />}
             <Routes>
               <Route path="/" element={<Login />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/verify-password" element={<VerifyPassword />} />
               <Route path="/dashboard/admin" element={<AdminDashboard />} />
               <Route path="/dashboard/employee" element={<EmployeeDashboard />} />
+              <Route path="/dashboard/student" element={<StudentDashboard />} />
+              <Route path="/dashboard/student-admin" element={<StudentAdminDashboard />} />
               <Route path="/team" element={<Team />} />
               <Route path="/contacts" element={<Contacts />} />
               <Route path="/invoices" element={<Invoices />} />

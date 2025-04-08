@@ -19,19 +19,30 @@ import "react-datepicker/dist/react-datepicker.css";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { deleteTimesheet } from "../../common api's/delete";
+import { editTimesheet } from "../../common api's/editTimesheet";
+import EditModal from "./editModal";
 
 const AdminDashboard = () => {
+  const [editData, setEditData] = useState({
+    id: null,
+    date: "",
+    projects: [],
+    hours: "",
+    task: "",
+  });
+  const [openEditModal, setOpenEditModal] = useState(false);
+
   const theme = useTheme();
-  const colors = tokens ? tokens(theme.palette.mode) : { primary: { 500: "#ffffff" } };
+  const colors = tokens
+    ? tokens(theme.palette.mode)
+    : { primary: { 500: "#ffffff" } };
   const [timesheetHistory, setTimesheetHistory] = useState([]);
   const username = useSelector((state) => state.user.user?.username);
   const token = localStorage.getItem("token");
-console.log(timesheetHistory,"timesheetHistory");
 
   // Pagination states
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearchChange = (event) => {
@@ -65,16 +76,16 @@ console.log(timesheetHistory,"timesheetHistory");
 
   const handleClick = async (id) => {
     console.log(id, "id being deleted");
-  
+
     const token = localStorage.getItem("token"); // Ensure token is stored in localStorage
-  
+
     if (!token) {
       console.error("Admin token not found!");
       return;
     }
-  
+
     const result = await deleteTimesheet(id, token);
-  
+
     if (result.success) {
       console.log("Timesheet deleted successfully!");
       fetchAllTimesheetHistory(); // Refresh the list after delete
@@ -82,13 +93,46 @@ console.log(timesheetHistory,"timesheetHistory");
       console.error("Failed to delete timesheet.");
     }
   };
-  
-  
-// const handleClick = (id) => {
-//   console.log(id,"iddddddddddddddddddddd");
-//   deleteTimesheet(id);  
-// }
 
+  const handleUpdate = async () => {
+    const token =
+      localStorage.getItem("token") || localStorage.getItem("token");
+
+    if (!token) return alert("Token not found");
+
+    const { id, ...payload } = editData;
+
+    const result = await editTimesheet(id, payload, token);
+
+    if (result.success) {
+      setOpenEditModal(false);
+      fetchAllTimesheetHistory();
+      alert("Timesheet updated successfully!");
+    } else {
+      alert("Failed to update timesheet.");
+    }
+  };
+
+  const handleEditClick = (entry) => {
+    const timesheetId = entry?.id;
+
+    if (!timesheetId) {
+      console.error("Timesheet ID not found in entry", entry);
+      return;
+    }
+
+    setEditData({
+      id: timesheetId,
+      date: entry.date,
+      projects: entry.projects.map((project) => ({
+        projectName: project.projectName,
+        hoursWorked: project.hoursWorked,
+        notes: project.notes,
+      })),
+    });
+
+    setOpenEditModal(true);
+  };
 
   // Handle pagination changes
   const handleChangePage = (event, newPage) => {
@@ -143,53 +187,77 @@ console.log(timesheetHistory,"timesheetHistory");
               {filteredTimesheetHistory
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((entry, index) => {
-                  const groupedProjects = entry.projects.reduce((acc, project) => {
-                    const existingGroup = acc.find((item) => item.timesheetId === project.timesheetId);
-                    if (existingGroup) {
-                      existingGroup.projects.push(project);
-                      existingGroup.totalHours += project.hoursWorked;
-                    } else {
-                      acc.push({
-                        timesheetId: project.timesheetId,
-                        projects: [project],
-                        totalHours: project.hoursWorked,
-                      });
-                    }
-                    return acc;
-                  }, []);
+                  const groupedProjects = entry.projects.reduce(
+                    (acc, project) => {
+                      const existingGroup = acc.find(
+                        (item) => item.timesheetId === project.timesheetId
+                      );
+                      if (existingGroup) {
+                        existingGroup.projects.push(project);
+                        existingGroup.totalHours += project.hoursWorked;
+                      } else {
+                        acc.push({
+                          timesheetId: project.timesheetId,
+                          projects: [project],
+                          totalHours: project.hoursWorked,
+                        });
+                      }
+                      return acc;
+                    },
+                    []
+                  );
 
-                  return groupedProjects.map((group, groupIndex) => // Check if group object contains timesheetId
-                 (
-                    <TableRow key={`${index}-${groupIndex}`}>
-                      <TableCell>{username}</TableCell>
-                      <TableCell>
-                        {group.projects.map((project, projectIndex) => (
-                          <span key={projectIndex}>
-                            {project.projectName}
-                            {projectIndex < group.projects.length - 1 ? " / " : ""}
-                          </span>
-                        ))}
-                      </TableCell>
-                      <TableCell>{group.totalHours}</TableCell>
-                      <TableCell>{entry.date}</TableCell>
-                      <TableCell>
-                        {group.projects.map((project, projectIndex) => (
-                          <span key={projectIndex}>
-                            {project.notes}
-                            {projectIndex < group.projects.length - 1 ? " / " : ""}
-                          </span>
-                        ))}
-                      </TableCell>
-                      <TableCell>
-                        <Button variant="contained" color="info" size="small" sx={{ mr: 1 }}>
-                          Edit
-                        </Button>
-                        <Button variant="contained" onClick={() => handleClick(entry?.id)}  color="error" size="small">
-                          Delete
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ));
+                  return groupedProjects.map(
+                    (
+                      group,
+                      groupIndex // Check if group object contains timesheetId
+                    ) => (
+                      <TableRow key={`${index}-${groupIndex}`}>
+                        <TableCell>{username}</TableCell>
+                        <TableCell>
+                          {group.projects.map((project, projectIndex) => (
+                            <span key={projectIndex}>
+                              {project.projectName}
+                              {projectIndex < group.projects.length - 1
+                                ? " / "
+                                : ""}
+                            </span>
+                          ))}
+                        </TableCell>
+                        <TableCell>{group.totalHours}</TableCell>
+                        <TableCell>{entry.date}</TableCell>
+                        <TableCell>
+                          {group.projects.map((project, projectIndex) => (
+                            <span key={projectIndex}>
+                              {project.notes}
+                              {projectIndex < group.projects.length - 1
+                                ? " / "
+                                : ""}
+                            </span>
+                          ))}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            onClick={() => handleEditClick(entry)}
+                            variant="contained"
+                            color="info"
+                            size="small"
+                            sx={{ mr: 1 }}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="contained"
+                            onClick={() => handleClick(entry?.id)}
+                            color="error"
+                            size="small"
+                          >
+                            Delete
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  );
                 })}
             </TableBody>
           </Table>
@@ -206,6 +274,13 @@ console.log(timesheetHistory,"timesheetHistory");
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Box>
+      <EditModal
+        open={openEditModal}
+        editData={editData}
+        setEditData={setEditData}
+        onClose={() => setOpenEditModal(false)}
+        onSave={handleUpdate}
+      />
     </Box>
   );
 };
