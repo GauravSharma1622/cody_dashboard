@@ -22,7 +22,8 @@ const Login = () => {
     try {
       const response = await axios.post("http://localhost:9999/auth/login", values); // Ensure this URL is correct
       const userRole = response.data.role;
-      localStorage.setItem("token",response.data.jwt ); // Store user data in local storage
+      localStorage.setItem("token",response.data.jwt );
+      localStorage.setItem("employeeName", response.data.name); // Store user data in local storage
       dispatch(setUser(response.data));
 
       setMessage("Login successful!"); // Set success message
