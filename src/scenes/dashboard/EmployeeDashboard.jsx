@@ -49,7 +49,7 @@ const EmployeeDashboard = () => {
   ]);
   const username = useSelector((state) => state.user.user?.username);
   const token = localStorage.getItem("token");
-
+  const employeeName = localStorage.getItem("employeeName");
   const fetchTimesheetHistory = async () => {
     try {
       const response = await axios.get(
@@ -108,6 +108,7 @@ const EmployeeDashboard = () => {
     }));
     const payload = {
       date: formattedDate,
+      employeeName: employeeName,
       projects: formattedProjects,
       username: username,
     };

@@ -21,6 +21,12 @@ import axios from "axios";
 import { deleteTimesheet } from "../../common api's/delete";
 import { editTimesheet } from "../../common api's/editTimesheet";
 import EditModal from "./editModal";
+// import DatePicker from "react-datepicker";
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import dayjs from 'dayjs';
+// import "react-datepicker/dist/react-datepicker.css";
 
 const AdminDashboard = () => {
   const [editData, setEditData] = useState({
@@ -31,14 +37,17 @@ const AdminDashboard = () => {
     task: "",
   });
   const [openEditModal, setOpenEditModal] = useState(false);
-
+  const [startDate, setStartDate] = useState(null); // State for start date
+  const [endDate, setEndDate] = useState(null); // State for end date
   const theme = useTheme();
   const colors = tokens
     ? tokens(theme.palette.mode)
     : { primary: { 500: "#ffffff" } };
   const [timesheetHistory, setTimesheetHistory] = useState([]);
+  const [empName, setEmpName] = useState("");
   const username = useSelector((state) => state.user.user?.username);
   const token = localStorage.getItem("token");
+console.log(timesheetHistory, "timesheetHistory in admin dashboard");
 
   // Pagination states
   const [page, setPage] = useState(0);
@@ -49,14 +58,28 @@ const AdminDashboard = () => {
     setSearchQuery(event?.target?.value?.toLowerCase());
   };
 
+  // const filteredTimesheetHistory = timesheetHistory.filter((entry) => {
+  //   const employeeNameMatches = username?.toLowerCase().includes(searchQuery);
+  //   const projectNameMatches = entry.projects?.some((project) =>
+  //     project?.projectName?.toLowerCase().includes(searchQuery)
+  //   );
+  //   return employeeNameMatches || projectNameMatches;
+  // });
   const filteredTimesheetHistory = timesheetHistory.filter((entry) => {
-    const employeeNameMatches = username?.toLowerCase().includes(searchQuery);
+    const employeeNameMatches = entry?.employeeName
+      ?.toLowerCase()
+      .includes(searchQuery);
     const projectNameMatches = entry.projects?.some((project) =>
       project?.projectName?.toLowerCase().includes(searchQuery)
     );
-    return employeeNameMatches || projectNameMatches;
+  
+    const entryDate = new Date(entry.date); // Convert entry date to Date object
+    const isWithinDateRange =
+      (!startDate || entryDate >= startDate) &&
+      (!endDate || entryDate <= endDate);
+  
+    return (employeeNameMatches || projectNameMatches) && isWithinDateRange;
   });
-
   const fetchAllTimesheetHistory = async () => {
     try {
       const response = await axios.get("http://localhost:9999/api/timesheets", {
@@ -155,17 +178,78 @@ const AdminDashboard = () => {
       borderRadius="8px"
       boxShadow="0px 4px 10px rgba(0, 0, 0, 0.1)"
     >
-      {/* Search Bar */}
-      <Box mb={2} width="100%">
-        <TextField
-          fullWidth
-          variant="outlined"
-          placeholder="Search by Employee Name or Project Name"
-          value={searchQuery}
-          onChange={handleSearchChange}
-        />
-      </Box>
+    <Box
+  display="flex"
+  alignItems="center"
+  justifyContent="space-between"
+  gap={2}
+  mb={2}
+  width="100%"
+  sx={{
+    flexWrap: "wrap", // Ensures responsiveness for smaller screens
+  }}
+>
+  {/* Search Bar */}
+  <TextField
+    fullWidth
+    variant="outlined"
+    placeholder="Search by Employee Name or Project Name"
+    value={searchQuery}
+    onChange={handleSearchChange}
+    sx={{
+      flex: 2,
+      // backgroundColor: "#fff",
+      borderRadius: "8px", // Rounded corners for a modern look
+      boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)", // Subtle shadow for better visibility
+    }}
+  />
 
+  {/* Date Pickers */}
+  <LocalizationProvider dateAdapter={AdapterDayjs}>
+  <Box
+    display="flex"
+    gap={2}
+    alignItems="center"
+    sx={{
+      flex: 1,
+      flexWrap: "nowrap", // Ensures responsiveness for smaller screens
+    }}
+  >
+    <DatePicker
+      label="From Date"
+      value={startDate}
+      onChange={(newValue) => setStartDate(newValue)}
+      slotProps={{
+        textField: {
+          fullWidth: true,
+          variant: 'outlined',
+          sx: {
+            backgroundColor: "#fff",
+            borderRadius: "8px",
+            boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
+          },
+        },
+      }}
+    />
+    <DatePicker
+      label="To Date"
+      value={endDate}
+      onChange={(newValue) => setEndDate(newValue)}
+      slotProps={{
+        textField: {
+          fullWidth: true,
+          variant: 'outlined',
+          sx: {
+            backgroundColor: "#fff",
+            borderRadius: "8px",
+            boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
+          },
+        },
+      }}
+    />
+  </Box>
+</LocalizationProvider>
+</Box>
       {/* Timesheet History Section */}
       <Box mt={4} width="100%">
         <Typography variant="h6" mb={2}>
@@ -176,6 +260,7 @@ const AdminDashboard = () => {
             <TableHead>
               <TableRow>
                 <TableCell>Employee Name</TableCell>
+                <TableCell>User Name</TableCell>
                 <TableCell>Project Name</TableCell>
                 <TableCell>Hours Worked</TableCell>
                 <TableCell>Date</TableCell>
@@ -208,12 +293,10 @@ const AdminDashboard = () => {
                   );
 
                   return groupedProjects.map(
-                    (
-                      group,
-                      groupIndex // Check if group object contains timesheetId
-                    ) => (
+                    (group,groupIndex ) => (
                       <TableRow key={`${index}-${groupIndex}`}>
-                        <TableCell>{username}</TableCell>
+                        <TableCell>{entry?.employeeName}</TableCell>
+                        <TableCell>{entry?.username}</TableCell>
                         <TableCell>
                           {group.projects.map((project, projectIndex) => (
                             <span key={projectIndex}>
