@@ -329,32 +329,7 @@ const EmployeeDashboard = () => {
                   </Button>
                 </Box>
               ))}
-
-              <Button
-                type="button"
-                color="secondary"
-                variant="contained"
-                fullWidth
-                onClick={() => handleAddProject(values, setFieldValue)}
-              >
-                Add More Projects
-              </Button>
-
-              <Button
-                type="submit"
-                color="secondary"
-                variant="contained"
-                fullWidth
-                mt={2}
-              >
-                Submit Timesheet
-              </Button>
-            </Box>
-          </form>
-        )}
-      </Formik>
-
-      {/* File Upload Section */}
+{/* File Upload Section */}
       <Box mt={4} width="100%">
         <Typography variant="h6" mb={2}>
           Upload Timesheet or Related Documents
@@ -384,6 +359,31 @@ const EmployeeDashboard = () => {
           ))}
         </Box>
       </Box>
+              <Button
+                type="button"
+                color="secondary"
+                variant="contained"
+                fullWidth
+                onClick={() => handleAddProject(values, setFieldValue)}
+              >
+                Add More Projects
+              </Button>
+
+              <Button
+                type="submit"
+                color="secondary"
+                variant="contained"
+                fullWidth
+                mt={2}
+              >
+                Submit Timesheet
+              </Button>
+            </Box>
+          </form>
+        )}
+      </Formik>
+
+      
 
       {/* Timesheet History Section */}
       <Box mt={4} width="100%">
