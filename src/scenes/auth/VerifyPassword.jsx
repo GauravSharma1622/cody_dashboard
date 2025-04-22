@@ -1,33 +1,51 @@
 import React, { useState } from "react";
 import { Box, Button, TextField, Typography, useTheme } from "@mui/material";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const VerifyPassword = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const [verificationCode, setVerificationCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [message, setMessage] = useState("");
-  const [isVerified, setIsVerified] = useState(false); // State to track OTP verification
+  const [isVerified, setIsVerified] = useState(false);
 
+  // Get email from localStorage
+  const email = localStorage.getItem("resetEmail");
+
+  // Handle OTP Verification
   const handleVerifyOTP = async () => {
+    const formData = new FormData();
+    formData.append("email", email);
+    formData.append("otp", verificationCode); // use "code" if backend expects that
+
     try {
-      await axios.post("http://localhost:9999/auth/verify-otp", {
-        code: verificationCode,
-      });
+      await axios.post("http://localhost:9999/api/auth/verify-otp", formData);
       setMessage("OTP verified successfully! Please set your new password.");
-      setIsVerified(true); // Mark OTP as verified
+      setIsVerified(true);
     } catch (error) {
       setMessage("Failed to verify OTP: " + (error.response?.data || error.message));
     }
   };
 
+  // Handle Setting New Password
   const handleSetNewPassword = async () => {
+    console.log("Email:", email);
+    console.log("New Password:", newPassword);
+
+    const formData = new FormData();
+    formData.append("email", email);
+    formData.append("newPassword", newPassword);
+
     try {
-      await axios.post("http://localhost:9999/auth/set-new-password", {
-        newPassword,
-      });
+      const response = await axios.post("http://localhost:9999/api/auth/reset-password", formData);
+      console.log("Response:", response.data);
       setMessage("Password reset successfully! You can now log in.");
+      localStorage.removeItem("resetEmail");
+      navigate("/login") // optional: clear email after success
     } catch (error) {
+      console.error("Error:", error);
       setMessage("Failed to reset password: " + (error.response?.data || error.message));
     }
   };
@@ -50,6 +68,7 @@ const VerifyPassword = () => {
         <Typography variant="h4" mb={2} textAlign="center">
           {isVerified ? "Set New Password" : "Verify OTP"}
         </Typography>
+
         {!isVerified ? (
           <>
             <TextField
@@ -92,6 +111,7 @@ const VerifyPassword = () => {
             </Button>
           </>
         )}
+
         {message && (
           <Typography mt={2} color="green" textAlign="center">
             {message}

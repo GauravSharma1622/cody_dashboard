@@ -74,9 +74,17 @@ console.log(timesheetHistory, "timesheetHistory in admin dashboard");
     );
   
     const entryDate = new Date(entry.date); // Convert entry date to Date object
+    // const isWithinDateRange =
+    //   (!startDate || entryDate >= startDate) &&
+    //   (!endDate || entryDate <= endDate);
+    const adjustedEndDate = endDate ? new Date(endDate) : null;
+    if (adjustedEndDate) {
+      adjustedEndDate.setHours(23, 59, 59, 999);
+    }
+    
     const isWithinDateRange =
       (!startDate || entryDate >= startDate) &&
-      (!endDate || entryDate <= endDate);
+      (!adjustedEndDate || entryDate <= adjustedEndDate);
   
     return (employeeNameMatches || projectNameMatches) && isWithinDateRange;
   });
@@ -224,7 +232,7 @@ console.log(timesheetHistory, "timesheetHistory in admin dashboard");
           fullWidth: true,
           variant: 'outlined',
           sx: {
-            backgroundColor: "#fff",
+            // backgroundColor: "#fff",
             borderRadius: "8px",
             boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
           },
@@ -240,7 +248,7 @@ console.log(timesheetHistory, "timesheetHistory in admin dashboard");
           fullWidth: true,
           variant: 'outlined',
           sx: {
-            backgroundColor: "#fff",
+            // backgroundColor: "#fff",
             borderRadius: "8px",
             boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
           },
