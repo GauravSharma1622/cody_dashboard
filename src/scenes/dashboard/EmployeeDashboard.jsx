@@ -48,6 +48,8 @@ const EmployeeDashboard = () => {
     { project: "", hoursWorked: "", notes: "" },
   ]);
   const username = useSelector((state) => state.user.user?.username);
+  console.log("Username from Redux:", username); // Debugging line
+  
   const token = localStorage.getItem("token");
   const employeeName = localStorage.getItem("employeeName");
   const fetchTimesheetHistory = async () => {
@@ -102,24 +104,42 @@ const EmployeeDashboard = () => {
   const handleSubmit = async (values) => {
     const formattedDate = values.date.toISOString().split("T")[0];
     const formattedProjects = values.projects.map((proj) => ({
-      projectName: proj.project, // Change key to match backend
-      hoursWorked: Number(proj.hoursWorked), // Ensure numeric value
+      projectName: proj.project,
+      hoursWorked: Number(proj.hoursWorked),
       notes: proj.notes,
     }));
-    const payload = {
+    const timesheetData = {
       date: formattedDate,
-      employeeName: employeeName,
-      projects: formattedProjects,
-      username: username,
+      username,
+      projects: formattedProjects
     };
+    
+    const formData = new FormData();
+    formData.append("timesheet", JSON.stringify(timesheetData));
+    uploadedFiles.forEach((file) => {
+      formData.append("file", file); // match Java key
+    });
+    
+    // const formData = new FormData();
+    // formData.append("date", formattedDate);
+    // formData.append("employeeName", employeeName);
+    // formData.append("username", username);
+    // formData.append("projects", JSON.stringify(formattedProjects));
+    // // formData.append("timesheet", uploadedFiles[0]);
+    // uploadedFiles.forEach((file) => {
+    //   // console.log("Appending file:", file); // Debugging line
+    //   formData.append("timesheet", file); // <-- Match your backend param name
+    // });
+    // console.log("Form Data:", formData.files); // Debugging line
+
     try {
       const response = await axios.post(
         "http://localhost:9999/api/timesheets",
-        payload,
+        formData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
+            // Don't set Content-Type manually
           },
         }
       );
@@ -127,10 +147,11 @@ const EmployeeDashboard = () => {
       alert("Timesheet submitted successfully!");
       fetchTimesheetHistory();
     } catch (error) {
-      console.error("Error submitting timesheet:", error);
+      // console.error("Error submitting timesheet:", error);
       alert("Error submitting timesheet");
     }
   };
+  
 
   const handleDeleteClick = async (id) => {
     const token = localStorage.getItem("token"); // Replace with the correct token key
@@ -337,7 +358,7 @@ const EmployeeDashboard = () => {
 
         <input
           type="file"
-          accept=".pdf,.docx,.xlsx"
+          accept="*/*"
           onChange={handleFileUpload}
         />
 

@@ -9,16 +9,34 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
 
+  // const handleSendEmail = async () => {
+  //   try {
+  //     await axios.post("http://localhost:9999/api/auth/forgot-password", { email }
+  //     );
+  //     setMessage("Email sent successfully! Please check your inbox.");
+  //     setTimeout(() => navigate("/verify-password"), 2000); // Redirect after 2 seconds
+  //   } catch (error) {
+  //     setMessage("Failed to send email: " + (error.response?.data || error.message));
+  //   }
+  // };
   const handleSendEmail = async () => {
+    const formData = new URLSearchParams();
+    formData.append("email", email);
+  
     try {
-      await axios.post("http://localhost:9999/auth/forgot-password", { email });
+      await axios.post("http://localhost:9999/api/auth/forgot-password", formData, {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      });
       setMessage("Email sent successfully! Please check your inbox.");
-      setTimeout(() => navigate("/verify-password"), 2000); // Redirect after 2 seconds
+      localStorage.setItem("resetEmail", email);
+      setTimeout(() => navigate("/verify-password"), 2000);
     } catch (error) {
       setMessage("Failed to send email: " + (error.response?.data || error.message));
     }
   };
-
+  
   return (
     <Box
       display="flex"
